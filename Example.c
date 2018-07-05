@@ -14,7 +14,9 @@ int main(int argc, char const *argv[])
 	int x_aux = 0;
 	int y_aux = 20;
 	double alpha = 0.0;
-	double d_alpha = 0.0;
+	int d_alpha = 0;
+	int alphaAux = -1;
+	int alphaAux_old = -1;
 	double rads;
 
 	/*Creating the renderer*/
@@ -27,6 +29,9 @@ int main(int argc, char const *argv[])
 
 	while(1)
 	{
+		/*Alpha increment to 0 to avoid angle movements*/
+		d_alpha = 0;
+
 		/*Detect buttons*/
 		while(SDL_PollEvent(&e))
 		{
@@ -55,6 +60,19 @@ int main(int argc, char const *argv[])
 						case SDLK_LEFT: dx = 0; break;
 						case SDLK_a: d_alpha = 0; break;
 						case SDLK_d: d_alpha = 0; break;
+					}
+					break;
+				case SDL_MOUSEMOTION:
+					/*First mouse event*/
+					if(alphaAux == -1 && alphaAux_old == -1)
+					{
+						alphaAux = alphaAux_old = e.motion.x;
+					}
+					else
+					{
+						alphaAux = e.motion.x;
+						d_alpha = alphaAux - alphaAux_old;
+						alphaAux_old = alphaAux;
 					}
 					break;
 			}
