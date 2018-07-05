@@ -15,8 +15,6 @@ int main(int argc, char const *argv[])
 	int y_aux = 20;
 	double alpha = 0.0;
 	int d_alpha = 0;
-	int alphaAux = -1;
-	int alphaAux_old = -1;
 	double rads;
 
 	/*Creating the renderer*/
@@ -63,17 +61,7 @@ int main(int argc, char const *argv[])
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					/*First mouse event*/
-					if(alphaAux == -1 && alphaAux_old == -1)
-					{
-						alphaAux = alphaAux_old = e.motion.x;
-					}
-					else
-					{
-						alphaAux = e.motion.x;
-						d_alpha = alphaAux - alphaAux_old;
-						alphaAux_old = alphaAux;
-					}
+					d_alpha = e.motion.xrel;
 					break;
 			}
 		}
