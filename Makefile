@@ -6,7 +6,7 @@ Example: Example.c jongine.c
 	@echo "Creando objetos para $@... "
 	$(CC) $(OBJFLAGS) $^
 	@echo "Creando ejecutable $@..."
-	$(CC) $(^:.c=.o) -o $@ -lSDL2
+	$(CC) $(^:.c=.o) -o $@ -lSDL2 -lm
 	@rm -f *.o
 	@echo == OK ==
 
