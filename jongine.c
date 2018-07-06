@@ -69,7 +69,7 @@ void drawRect(SDL_Renderer * renderer, int x, int y, int height, int width, int 
 
 void drawLine(SDL_Renderer * renderer, int x0, int y0, int x1, int y1, int r, int g, int b, int a)
 {
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
+	SDL_SetRenderDrawColor(renderer, r, g, b, a);
 	SDL_RenderDrawLine(renderer, x0, y0, x1, y1);
 }
 
