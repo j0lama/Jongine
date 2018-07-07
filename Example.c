@@ -132,8 +132,15 @@ int main(int argc, char const *argv[])
 		drawRect(renderer, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2-5, MINI_MAP_HEIGHT/2-5, 10, 10, 0, 255, 0, SDL_ALPHA_OPAQUE);
 
 
-		/*MiniMap Separator*/
+		/****MiniMap 3****/
+		//drawRect(renderer, MINI_MAP_HEIGHT, 0, MINI_MAP_HEIGHT, MINI_MAP_WIDTH, 255, 255, 255, SDL_ALPHA_OPAQUE);
+
+
+		/*MiniMap Separator 1*/
 		drawLine(renderer, MINI_MAP_WIDTH, 0, MINI_MAP_WIDTH, MINI_MAP_HEIGHT, 0, 0, 0, SDL_ALPHA_OPAQUE);
+
+		/*MiniMap Separator 2*/
+		drawLine(renderer, 2*MINI_MAP_WIDTH, 0, 2*MINI_MAP_WIDTH, MINI_MAP_HEIGHT, 0, 0, 0, SDL_ALPHA_OPAQUE);
 
 
 
