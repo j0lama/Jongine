@@ -8,6 +8,27 @@
 
 #define WALL_HEIGHT 100
 
+#define WINDOW_WIDTH 640
+#define WINDOW_HEIGHT 480
+
+int cross_product(int x0, int y0, int x1, int y1)
+{
+	return (x0*y1) - (x1 * y0);
+}
+
+void intersec(int x1, int y1, int x2, int y2, int x3, int y3, int x4, int y4, int * x, int * y)
+{
+	int det;
+	det = cross_product(x1-x2, y1-y2, x3-x4, y3-y4);
+	if(det == 0)
+		return;
+	*x = cross_product(x1, y1, x2, y2);
+	*y = cross_product(x3, y3, x4, y4);
+	*x = cross_product(*x, x1-x2, *y, x3-x4) / det;
+	*y = cross_product(*x, y1-y2, *y, y3-y4) / det;
+}
+
+
 int main(int argc, char const *argv[])
 {
 	SDL_Event e;
@@ -50,8 +71,8 @@ int main(int argc, char const *argv[])
 						case SDLK_RIGHT: dx = 1; break;
 						case SDLK_DOWN: dy = 1; break;
 						case SDLK_LEFT: dx = -1; break;
-						case SDLK_a: d_alpha = -4; break;
-						case SDLK_d: d_alpha = 4; break;
+						case SDLK_a: d_alpha = 4; break;
+						case SDLK_d: d_alpha = -4; break;
 					}
 					break;
 				case SDL_KEYUP:
@@ -66,7 +87,7 @@ int main(int argc, char const *argv[])
 					}
 					break;
 				case SDL_MOUSEMOTION:
-					d_alpha = e.motion.xrel;
+					d_alpha = -e.motion.xrel;
 					break;
 			}
 		}
@@ -111,7 +132,7 @@ int main(int argc, char const *argv[])
 
 
 		/****MiniMap 2****/
-		drawRect(renderer, MINI_MAP_HEIGHT, 0, MINI_MAP_HEIGHT, MINI_MAP_WIDTH, 255, 255, 255, SDL_ALPHA_OPAQUE);
+		drawRect(renderer, MINI_MAP_WIDTH, 0, MINI_MAP_HEIGHT, MINI_MAP_WIDTH, 255, 255, 255, SDL_ALPHA_OPAQUE);
 
 		wx0_aux = wx0 - x;
 		wy0_aux = wy0 - y;
@@ -133,14 +154,63 @@ int main(int argc, char const *argv[])
 
 
 		/****MiniMap 3****/
-		//drawRect(renderer, MINI_MAP_HEIGHT, 0, MINI_MAP_HEIGHT, MINI_MAP_WIDTH, 255, 255, 255, SDL_ALPHA_OPAQUE);
+		int x1, x2, y1a, y2a, y1b, y2b;
+		int ix1, ix2, iz1, iz2;
+
+		if(tz1 > 0 || tz2 > 0)
+		{
+			intersec(wx0_aux, tz1, wx1_aux, tz2, -0.0001, 0.0001, 20, 5, &ix1, &iz1);
+			intersec(wx0_aux, tz1, wx1_aux, tz2, 0.0001, 0.0001, 20, 5, &ix2, &iz2);
+			if(tz1 <= 0)
+			{
+				if(iz1 > 0)
+				{
+					wx0_aux = ix1;
+					tz1 = iz1;
+				}
+				else
+				{
+					wx0_aux = ix2;
+					tz1 = iz2;
+				}
+			}
+			if(tz2 <= 0)
+			{
+				if(iz1 > 0)
+				{
+					wx1_aux = ix1;
+					tz2 = iz1;
+				}
+				else
+				{
+					wx1_aux = ix2;
+					tz2 = iz2;
+				}
+			}
+
+			if(tz1 != 0)
+			{
+				x1 = wx0_aux*16/tz1;
+				y1a = -(WINDOW_HEIGHT/2)/tz1;
+				y1b = (WINDOW_HEIGHT/2)/tz1;
+			}
+			if(tz2 != 0)
+			{
+				x2 = wx1_aux*16/tz2;
+				y2a = -(WINDOW_HEIGHT/2)/tz2;
+				y2b = (WINDOW_HEIGHT/2)/tz2;
+			}
+
+			drawLine(renderer, WINDOW_WIDTH/2 + x1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x2, WINDOW_HEIGHT/2 + y2a, 0, 0, 255, SDL_ALPHA_OPAQUE); //top
+			drawLine(renderer, WINDOW_WIDTH/2 + x1, WINDOW_HEIGHT/2 + y1b, WINDOW_WIDTH/2 + x2, WINDOW_HEIGHT/2 + y2b, 0, 0, 255, SDL_ALPHA_OPAQUE); //bottom
+			drawLine(renderer, WINDOW_WIDTH/2 + x1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x1, WINDOW_HEIGHT/2 + y1b, 255, 0, 0, SDL_ALPHA_OPAQUE); //left
+			drawLine(renderer, WINDOW_WIDTH/2 + x2, WINDOW_HEIGHT/2 + y2a, WINDOW_WIDTH/2 + x2, WINDOW_HEIGHT/2 + y2b, 255, 0, 0, SDL_ALPHA_OPAQUE); //right
+
+		}
 
 
 		/*MiniMap Separator 1*/
 		drawLine(renderer, MINI_MAP_WIDTH, 0, MINI_MAP_WIDTH, MINI_MAP_HEIGHT, 0, 0, 0, SDL_ALPHA_OPAQUE);
-
-		/*MiniMap Separator 2*/
-		drawLine(renderer, 2*MINI_MAP_WIDTH, 0, 2*MINI_MAP_WIDTH, MINI_MAP_HEIGHT, 0, 0, 0, SDL_ALPHA_OPAQUE);
 
 
 
