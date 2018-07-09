@@ -9,9 +9,9 @@ int main(int argc, char const *argv[])
 	SDL_Renderer * renderer = NULL;
 	int x = MINI_MAP_WIDTH/2;
 	int y = MINI_MAP_HEIGHT/2;
-	int dx = 0;
-	int dy = 0;
-	double alpha = 0.0;
+	double dx = 0;
+	double dy = 0;
+	double alpha = 0.0, rads = 0.0;
 	int d_alpha = 0;
 
 	/*Wall 1*/
@@ -45,10 +45,10 @@ int main(int argc, char const *argv[])
 					switch (e.key.keysym.sym)
 					{
 						case SDLK_ESCAPE: goto quit;
-						case SDLK_UP: dy = -1; break;
-						case SDLK_DOWN: dy = 1; break;
-						case SDLK_RIGHT: dx = 1; break;
-						case SDLK_LEFT: dx = -1; break;
+						case SDLK_UP: dy += 2*sin(rads); dx += 2*cos(rads); break;
+						case SDLK_DOWN: dy += -2*sin(rads); dx += -2*cos(rads); break;
+						case SDLK_RIGHT: dx += -2*cos(rads - PI/2); dy += -2*sin(rads - PI/2); break;
+						case SDLK_LEFT: dx += -2*cos(rads + PI/2); dy += -2*sin(rads + PI/2); break;
 						case SDLK_a: d_alpha = -4; break;
 						case SDLK_d: d_alpha = 4; break;
 					}
@@ -65,6 +65,7 @@ int main(int argc, char const *argv[])
 					}
 					break;
 				case SDL_MOUSEMOTION:
+					dx = dy = 0;
 					d_alpha = e.motion.xrel/2;
 					break;
 			}
@@ -73,15 +74,29 @@ int main(int argc, char const *argv[])
 		/*Draw in the screen*/
 		/*Black background*/
 		setBackgroundColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
-
-		x += dx;
+		if(dx >= 1) {
+			x += 1;
+			dx = 0;
+		}
+		if(dx <= -1) {
+			x -= 1;
+			dx = 0;
+		}
 		if(x < 0) x = 0;
 		if(x > MINI_MAP_WIDTH) x = MINI_MAP_WIDTH;
-		y += dy;
+		if(dy >= 1) {
+			y += 1;
+			dy = 0;
+		}
+		if(dy <= -1) {
+			y -= 1;
+			dy = 0;
+		}
 		if(y < 0) y = 0;
 		if(y > MINI_MAP_HEIGHT) y = MINI_MAP_HEIGHT;
 
 		alpha += d_alpha;
+		rads = alpha * (PI/180);
 		#ifdef _MAP
 		drawRect(renderer, 0, 0, MINI_MAP_HEIGHT, MINI_MAP_WIDTH, 255, 255, 255, SDL_ALPHA_OPAQUE);
 		drawRect(renderer, MINI_MAP_WIDTH, 0, MINI_MAP_HEIGHT, MINI_MAP_WIDTH, 255, 255, 255, SDL_ALPHA_OPAQUE);
