@@ -1,5 +1,5 @@
 CC				= gcc
-OBJFLAGS		= -c -Wall -pedantic -ansi -g -std=c99
+OBJFLAGS		= -c -Wall -pedantic -ansi -g -std=c99 -D_MAP
 all: Example
 
 Example: Example.c jongine.c
