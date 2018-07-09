@@ -6,6 +6,8 @@
 #define WINDOW_HEIGHT 480
 #define MINI_MAP_HEIGHT 160
 #define MINI_MAP_WIDTH 160
+#define HFOV 75
+#define VFOV 1.5
 
 
 SDL_Renderer * initSDL(char * windowName, int width, int height);

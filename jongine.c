@@ -122,8 +122,8 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, int x0, i
 	#endif
 
 	if(tz1 > 0 || tz2 > 0) {
-		intersec(wx0_aux, tz1, wx1_aux, tz2, -0.0001, 0.0001, -100, 5, &ix1, &iz1);
-		intersec(wx0_aux, tz1, wx1_aux, tz2, 0.0001, 0.0001, 100, 5, &ix2, &iz2);
+		intersec(wx0_aux, tz1, wx1_aux, tz2, -0.0001, 0.0001, -100, 20, &ix1, &iz1);
+		intersec(wx0_aux, tz1, wx1_aux, tz2, 0.0001, 0.0001, 100, 20, &ix2, &iz2);
 		if(tz1 <= 0) {
 			if(iz1 > 0) {
 				wx0_aux = ix1;
@@ -147,15 +147,15 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, int x0, i
 
 		if(tz1 != 0)
 		{
-			x_1 = -wx0_aux*16/tz1;
-			y1a = -(WINDOW_HEIGHT)/tz1;
-			y1b = (WINDOW_HEIGHT)/tz1;
+			x_1 = -wx0_aux*HFOV/tz1;
+			y1a = -(WINDOW_HEIGHT*VFOV)/tz1;
+			y1b = (WINDOW_HEIGHT*VFOV)/tz1;
 		}
 		if(tz2 != 0)
 		{
-			x_2 = -wx1_aux*16/tz2;
-			y2a = -(WINDOW_HEIGHT)/tz2;
-			y2b = (WINDOW_HEIGHT)/tz2;
+			x_2 = -wx1_aux*HFOV/tz2;
+			y2a = -(WINDOW_HEIGHT*VFOV)/tz2;
+			y2b = (WINDOW_HEIGHT*VFOV)/tz2;
 		}
 
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2a); //top
