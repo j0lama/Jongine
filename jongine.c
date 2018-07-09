@@ -147,13 +147,13 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, int x0, i
 
 		if(tz1 != 0)
 		{
-			x_1 = -wx0_aux*16/tz1;
+			x_1 = -wx0_aux*75/tz1;
 			y1a = -(WINDOW_HEIGHT)/tz1;
 			y1b = (WINDOW_HEIGHT)/tz1;
 		}
 		if(tz2 != 0)
 		{
-			x_2 = -wx1_aux*16/tz2;
+			x_2 = -wx1_aux*75/tz2;
 			y2a = -(WINDOW_HEIGHT)/tz2;
 			y2b = (WINDOW_HEIGHT)/tz2;
 		}
