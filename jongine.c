@@ -45,14 +45,6 @@ SDL_Renderer * initSDL(char * windowName, int width, int height)
   	return renderer;
 }
 
-void getScreenDimensions(int * height, int * width)
-{
-	SDL_DisplayMode DM;
-	SDL_GetCurrentDisplayMode(0, &DM);
-	*height = DM.h;
-	*width = DM.w;
-}
-
 void drawCircle(SDL_Renderer * renderer, int x, int y, double radius, int r, int g, int b, int a)
 {
 	SDL_SetRenderDrawColor(renderer, r,g,b,a);

@@ -7,11 +7,10 @@
 #define MINI_MAP_HEIGHT 160
 #define MINI_MAP_WIDTH 160
 #define HFOV 75
-#define VFOV 1.5
+#define VFOV 2
 
 
 SDL_Renderer * initSDL(char * windowName, int width, int height);
-void getScreenDimensions(int * height, int * width);
 void drawRect(SDL_Renderer * renderer, int x, int y, int height, int width, int r, int g, int b, int a);
 void drawCircle(SDL_Renderer * renderer, int x, int y, double radius, int r, int g, int b, int a);
 void drawLine(SDL_Renderer * renderer, int x0, int y0, int x1, int y1, int r, int g, int b, int a);
