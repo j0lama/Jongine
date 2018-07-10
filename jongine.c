@@ -294,6 +294,8 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 		return;
 	for(i = 0; i < map->wallsNumber; i++)
 	{
+		/*3D rendering algorithm*/
+		/*Raycasting or binary space partition*/
 		draw3DWall(renderer, map->px, map->py, map->alpha, map->walls[i]);
 	}
 }
