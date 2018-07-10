@@ -3,6 +3,13 @@
 #include <SDL2/SDL.h>
 #include "jongine.h"
 
+struct _Map
+{
+	int x, y;
+	int px, py, alpha;
+	Wall * walls;
+};
+
 struct _Wall 
 {
 	int x0;
@@ -21,6 +28,18 @@ Wall * newWall(int x0, int y0, int x1, int y1, int r, int g, int b, int a)
 	wall->y0 = y0;
 	wall->x1 = x1;
 	wall->y1 = y1;
+	wall->r = r;
+	wall->g = g;
+	wall->b = b;
+	wall->a = a;
+	return wall;
+}
+
+void destryWall(Wall * wall)
+{
+	if(wall == NULL)
+		return;
+	free(wall);
 }
 
 SDL_Renderer * initSDL(char * windowName, int width, int height)
@@ -102,10 +121,19 @@ void intersec(int x1, int y1, int x2, int y2, float nearside, float nearz, float
 	*y = cross_product(x_aux, y1-y2, y_aux, nearz-farz) / det;
 }
 
-void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, int x0, int y0, int x1, int y1)
+void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wall)
 {
+	int x0, y0, x1, y1;
 	int tz1 = 0, tz2 = 0, wx0_aux = 0, wx1_aux = 0, x_1 = 0, x_2 = 0, y1a = 0, y2a = 0, y1b = 0, y2b = 0, ix1 = 0, ix2 = 0, iz1 = 0, iz2 = 0;
 	double rads = 0.0;
+
+	if(wall == NULL)
+		return;
+
+	x0 = wall->x0;
+	y0 = wall->y0;
+	x1 = wall->x1;
+	y1 = wall->y1;
 
 	/*Convert angle to radians*/
 	rads = alpha * (PI/180);
@@ -170,17 +198,15 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, int x0, i
 			y2b = (WINDOW_HEIGHT*VFOV)/tz2;
 		}
 
+		/*Setting wall color*/
+		SDL_SetRenderDrawColor(renderer, wall->r, wall->g, wall->b, wall->a);
+
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2a); //top
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1b, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2b); //bottom
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1b); //left
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2a, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2b); //right
 	}
 	return;
-}
-
-void setColor(SDL_Renderer * renderer, int r, int g, int b, int a)
-{
-	SDL_SetRenderDrawColor(renderer, r,g,b,a);
 }
 
 void setBackgroundColor(SDL_Renderer * renderer, int r, int g, int b, int a)
