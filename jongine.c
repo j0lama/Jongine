@@ -4,6 +4,10 @@
 #include <SDL2/SDL.h>
 #include "jongine.h"
 
+#define PI 3.14159265358979323846
+#define HFOV 75
+#define VFOV 2
+
 struct _Map
 {
 	int x, y;
@@ -183,7 +187,7 @@ void intersec(int x1, int y1, int x2, int y2, float nearside, float nearz, float
 	*y = cross_product(x_aux, y1-y2, y_aux, nearz-farz) / det;
 }
 
-void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wall)
+void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wall, Map * map)
 {
 	int x0, y0, x1, y1;
 	int tz1 = 0, tz2 = 0, wx0_aux = 0, wx1_aux = 0, x_1 = 0, x_2 = 0, y1a = 0, y2a = 0, y1b = 0, y2b = 0, ix1 = 0, ix2 = 0, iz1 = 0, iz2 = 0;
@@ -216,10 +220,10 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 	/*Draw MiniMap 2 and Player*/
 	#ifdef _DEBUG
 	/*Wall in MiniMap*/
-	drawLine(renderer, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2 - wx0_aux, MINI_MAP_HEIGHT/2 - tz1, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2 - wx1_aux, MINI_MAP_HEIGHT/2 - tz2, 0, 0, 255, SDL_ALPHA_OPAQUE);
+	drawLine(renderer, map->x + map->x/2 - wx0_aux, map->y/2 - tz1, map->x + map->x/2 - wx1_aux, map->y/2 - tz2, 0, 0, 255, SDL_ALPHA_OPAQUE);
 	/*Player in MiniMap*/
-	drawLine(renderer, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2, MINI_MAP_HEIGHT/2, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2, MINI_MAP_HEIGHT/2 - 30, 0, 0, 0, SDL_ALPHA_OPAQUE);
-	drawRect(renderer, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2-5, MINI_MAP_HEIGHT/2-5, 10, 10, 0, 255, 0, SDL_ALPHA_OPAQUE);
+	drawLine(renderer, map->x + map->x/2, map->y/2, map->x + map->x/2, map->y/2 - 30, 0, 0, 0, SDL_ALPHA_OPAQUE);
+	drawRect(renderer, map->x + map->x/2-5, map->y/2-5, 10, 10, 0, 255, 0, SDL_ALPHA_OPAQUE);
 	#endif
 
 	if(tz1 > 0 || tz2 > 0) {
@@ -281,9 +285,9 @@ void updateRender(SDL_Renderer * renderer)
 	SDL_RenderPresent(renderer);
 }
 
-void destroySDL(void * renderer)
+void destroySDL(SDL_Renderer * renderer)
 {
-	SDL_DestroyRenderer((SDL_Renderer *) renderer);
+	SDL_DestroyRenderer(renderer);
 	SDL_Quit();
 }
 
@@ -292,11 +296,13 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 	int i = 0;
 	if(map == NULL)
 		return;
+	/*3D rendering algorithm*/
+	/*Painter's algorithm, Raycasting or binary space partition*/
+
+	/*Draw all walls without any order*/
 	for(i = 0; i < map->wallsNumber; i++)
 	{
-		/*3D rendering algorithm*/
-		/*Raycasting or binary space partition*/
-		draw3DWall(renderer, map->px, map->py, map->alpha, map->walls[i]);
+		draw3DWall(renderer, map->px, map->py, map->alpha, map->walls[i], map);
 	}
 }
 

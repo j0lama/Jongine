@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <math.h>
 #include "jongine.h"
 
 int main(int argc, char const *argv[])
