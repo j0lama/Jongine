@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <math.h>
 #include <SDL2/SDL.h>
 #include "jongine.h"
@@ -6,8 +7,10 @@
 struct _Map
 {
 	int x, y;
-	int px, py, alpha;
-	Wall * walls;
+	int px, py;
+	double alpha;
+	int wallsNumber;
+	Wall ** walls;
 };
 
 struct _Wall 
@@ -42,7 +45,72 @@ void destryWall(Wall * wall)
 	free(wall);
 }
 
-SDL_Renderer * initSDL(char * windowName, int width, int height)
+Map * readMap(char * mapfile)
+{
+	FILE * file;
+	Map * map;
+	int x0 = 0, y0 = 0, x1 = 0, y1 = 0, r = 0, g = 0, b = 0, a = 0;
+	int wallsNumber = 0;
+	char line[128];
+
+	file = fopen(mapfile, "r");
+	if(file == NULL)
+		return NULL;
+	map = (Map *) malloc(sizeof(Map));
+	#ifdef _DEBUG
+	printf("Map debug info:\n");
+	#endif
+	while(fgets(line, 128, file) != NULL)
+	{
+		if (sscanf(line,"mapsize\t%d\t%d",&map->x, &map->y))
+		{
+			#ifdef _DEBUG
+			printf("\tmapsize x:%d y:%d\n", map->x, map->y);
+			#endif
+		}
+		if (sscanf(line,"player\t%d\t%d",&map->px, &map->py))
+		{
+			#ifdef _DEBUG
+			printf("\tplayer px:%d py:%d\n", map->px, map->py);
+			#endif
+		}
+		if (sscanf(line,"wallsnumber\t%d",&map->wallsNumber))
+		{
+			#ifdef _DEBUG
+			printf("\twallsnumber %d\n", map->wallsNumber);
+			#endif
+			map->walls = (Wall **)malloc(map->wallsNumber*sizeof(Wall *));
+		}
+		if (sscanf(line,"wall\t%d\t%d\t%d\t%d\t%d\t%d\t%d\t%d",&x0, &y0, &x1, &y1, &r, &g, &b, &a))
+		{
+			if(wallsNumber >= map->wallsNumber)
+				break;
+			#ifdef _DEBUG
+			printf("\twall x0:%d y0:%d x1:%d y1:%d r:%d g:%d b:%d a:%d\n", x0, y0, x1, y1, r, g, b, a);
+			#endif
+			map->walls[wallsNumber] = newWall(x0, y0, x1, y1, r, g, b, a);
+			wallsNumber++;
+		}
+		bzero(line, 128);
+	}
+	map->alpha = 0;
+	return map;
+}
+
+void destroyMap(Map * map)
+{
+	int i = 0;
+	if(map == NULL)
+		return;
+	for(i = 0; i < map->wallsNumber; i++)
+	{
+		destryWall(map->walls[i]);
+	}
+	free(map->walls);
+	free(map);
+}
+
+void * initSDL(char * windowName, int width, int height)
 {
 	SDL_Window * window = NULL;
 	SDL_Renderer * renderer = NULL;
@@ -81,14 +149,8 @@ SDL_Renderer * initSDL(char * windowName, int width, int height)
   	/*Trapping mouse in the screen*/
   	SDL_SetRelativeMouseMode(SDL_TRUE);
 
-  	return renderer;
-}
-
-void drawCircle(SDL_Renderer * renderer, int x, int y, double radius, int r, int g, int b, int a)
-{
-	SDL_SetRenderDrawColor(renderer, r,g,b,a);
-
-	SDL_RenderDrawPoint(renderer, x, y);
+  	/*Casting to void*/
+  	return (void *) renderer;
 }
 
 void drawRect(SDL_Renderer * renderer, int x, int y, int height, int width, int r, int g, int b, int a)
@@ -135,11 +197,10 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 	x1 = wall->x1;
 	y1 = wall->y1;
 
-	/*Convert angle to radians*/
-	rads = alpha * (PI/180);
+	rads = alpha;
 
 	/*Draw MiniMap 1 and Player*/
-	#ifdef _MAP
+	#ifdef _DEBUG
 	/*Player in MiniMap*/
 	drawLine(renderer, px, py, px + 30*cos(rads), py + 30*sin(rads), 0, 0, 0, SDL_ALPHA_OPAQUE);
 	drawRect(renderer, px-5, py-5, 10, 10, 0, 255, 0, SDL_ALPHA_OPAQUE);
@@ -153,7 +214,7 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 	wx1_aux = (x1 - px)*sin(rads) - (y1 - py)*cos(rads);
 
 	/*Draw MiniMap 2 and Player*/
-	#ifdef _MAP
+	#ifdef _DEBUG
 	/*Wall in MiniMap*/
 	drawLine(renderer, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2 - wx0_aux, MINI_MAP_HEIGHT/2 - tz1, MINI_MAP_WIDTH + MINI_MAP_WIDTH/2 - wx1_aux, MINI_MAP_HEIGHT/2 - tz2, 0, 0, 255, SDL_ALPHA_OPAQUE);
 	/*Player in MiniMap*/
@@ -220,8 +281,102 @@ void updateRender(SDL_Renderer * renderer)
 	SDL_RenderPresent(renderer);
 }
 
-void destroySDL(SDL_Renderer * renderer)
+void destroySDL(void * renderer)
 {
-	SDL_DestroyRenderer(renderer);
+	SDL_DestroyRenderer((SDL_Renderer *) renderer);
 	SDL_Quit();
+}
+
+void drawMap(SDL_Renderer * renderer, Map * map)
+{
+	int i = 0;
+	if(map == NULL)
+		return;
+	for(i = 0; i < map->wallsNumber; i++)
+	{
+		draw3DWall(renderer, map->px, map->py, map->alpha, map->walls[i]);
+	}
+}
+
+void runGame(void * renderer, Map * map)
+{
+	SDL_Event e;
+	double dx = 0;
+	double dy = 0;
+	double alpha = 0.0, rads = 0.0;
+	int d_alpha = 0;
+	while(1)
+	{
+		/*Alpha increment to 0 to avoid angle movements*/
+		d_alpha = 0;
+
+		/*Detect buttons*/
+		while(SDL_PollEvent(&e))
+		{
+			switch (e.type)
+			{
+				case SDL_QUIT:
+					goto quit;
+				case SDL_KEYDOWN:
+					switch (e.key.keysym.sym)
+					{
+						case SDLK_ESCAPE: goto quit;
+						case SDLK_UP: dy += 2*sin(rads); dx += 2*cos(rads); break;
+						case SDLK_DOWN: dy += -2*sin(rads); dx += -2*cos(rads); break;
+						case SDLK_RIGHT: dx += -2*cos(rads - PI/2); dy += -2*sin(rads - PI/2); break;
+						case SDLK_LEFT: dx += -2*cos(rads + PI/2); dy += -2*sin(rads + PI/2); break;
+					}
+					break;
+				case SDL_KEYUP:
+					switch (e.key.keysym.sym)
+					{
+						case SDLK_UP: dy = 0; break;
+						case SDLK_RIGHT: dx = 0; break;
+						case SDLK_DOWN: dy = 0; break;
+						case SDLK_LEFT: dx = 0; break;
+					}
+					break;
+				case SDL_MOUSEMOTION:
+					dx = dy = 0;
+					alpha += e.motion.xrel/5;
+					break;
+			}
+		}
+
+		/*Draw in the screen*/
+		/*Black background*/
+		setBackgroundColor((SDL_Renderer *) renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		if(dx >= 1) {
+			map->px += 1;
+			dx = 0;
+		}
+		if(dx <= -1) {
+			map->px -= 1;
+			dx = 0;
+		}
+		if(map->px < 0) map->px = 0;
+		if(map->px > map->x) map->px = map->x;
+		if(dy >= 1) {
+			map->py += 1;
+			dy = 0;
+		}
+		if(dy <= -1) {
+			map->py -= 1;
+			dy = 0;
+		}
+		if(map->py < 0) map->py = 0;
+		if(map->py > map->y) map->py = map->y;
+
+		/*Convert alpha to radians*/
+		rads = alpha * (PI/180);
+		map->alpha = rads;
+		drawMap((SDL_Renderer *) renderer, map);
+
+		/*Update screen*/
+		updateRender((SDL_Renderer *) renderer);
+	}
+
+	quit:
+	destroySDL((SDL_Renderer *) renderer);
+	return;
 }
