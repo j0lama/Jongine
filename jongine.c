@@ -299,6 +299,11 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 	/*3D rendering algorithm*/
 	/*Painter's algorithm, Raycasting or binary space partition*/
 
+	/*Painter's algorithm*/
+
+	/*Si la linea que va desde el jugador a ambos vertices de una pared no colisiona con la recta que define otra pared
+	 entonces esa pared tiene que dibujarse al final*/
+
 	/*Draw all walls without any order*/
 	for(i = 0; i < map->wallsNumber; i++)
 	{
