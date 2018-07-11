@@ -8,17 +8,11 @@
 #define HFOV 75
 #define VFOV 2
 
+#define PLAYER_SPEED 5
+
 #define min(a,b)	(((a) < (b)) ? (a) : (b))
 #define max(a,b)	(((a) > (b)) ? (a) : (b))
 
-struct _Map
-{
-	int x, y;
-	int px, py;
-	double alpha;
-	int wallsNumber;
-	Wall ** walls;
-};
 
 struct _Wall 
 {
@@ -28,6 +22,17 @@ struct _Wall
 	int y1;
 	int z;
 	int r, g, b, a;
+};
+typedef struct _Wall Wall;
+
+
+struct _Map
+{
+	int x, y;
+	int px, py;
+	double alpha;
+	int wallsNumber;
+	Wall ** walls;
 };
 
 Wall * newWall(int x0, int y0, int x1, int y1, int r, int g, int b, int a)
@@ -301,7 +306,7 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 		drawFilledWall(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y1a, WINDOW_HEIGHT/2 + y2a, WINDOW_HEIGHT/2 + y1b, WINDOW_HEIGHT/2 + y2b);
 
 		/*Setting to black the wall margin*/
-		//SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
 
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2a); //top
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1b, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2b); //bottom
@@ -389,10 +394,10 @@ void runGame(void * renderer, Map * map)
 					switch (e.key.keysym.sym)
 					{
 						case SDLK_ESCAPE: goto quit;
-						case SDLK_UP: dy += 2*sin(rads); dx += 2*cos(rads); break;
-						case SDLK_DOWN: dy += -2*sin(rads); dx += -2*cos(rads); break;
-						case SDLK_RIGHT: dx += -2*cos(rads - PI/2); dy += -2*sin(rads - PI/2); break;
-						case SDLK_LEFT: dx += -2*cos(rads + PI/2); dy += -2*sin(rads + PI/2); break;
+						case SDLK_UP: dy += PLAYER_SPEED*sin(rads); dx += PLAYER_SPEED*cos(rads); break;
+						case SDLK_DOWN: dy += -PLAYER_SPEED*sin(rads); dx += -PLAYER_SPEED*cos(rads); break;
+						case SDLK_RIGHT: dx += -PLAYER_SPEED*cos(rads - PI/2); dy += -PLAYER_SPEED*sin(rads - PI/2); break;
+						case SDLK_LEFT: dx += -PLAYER_SPEED*cos(rads + PI/2); dy += -PLAYER_SPEED*sin(rads + PI/2); break;
 					}
 					break;
 				case SDL_KEYUP:
