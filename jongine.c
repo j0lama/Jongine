@@ -8,6 +8,9 @@
 #define HFOV 75
 #define VFOV 2
 
+#define min(a,b)	(((a) < (b)) ? (a) : (b))
+#define max(a,b)	(((a) > (b)) ? (a) : (b))
+
 struct _Map
 {
 	int x, y;
@@ -187,6 +190,35 @@ void intersec(int x1, int y1, int x2, int y2, float nearside, float nearz, float
 	*y = cross_product(x_aux, y1-y2, y_aux, nearz-farz) / det;
 }
 
+void drawFilledWall(SDL_Renderer * renderer, int x1, int x2, int y1a, int y2a, int y1b, int y2b)
+{
+	int i = 0;
+	float m1 = 0.0, m2 = 0.0;
+	float b1 = 0, b2 = 0;
+
+	m1 = (float)(y2a-y1a)/(x2-x1);
+	b1 = y1a - x1*m1;
+
+	m2 = (float)(y2b-y1b)/(x2-x1);
+	b2 = y1b - x1*m2;
+
+	if(x1 < x2)
+	{
+		for(i = x1; i <= x2; i++)
+		{
+			SDL_RenderDrawLine(renderer, i, (int)i*m1+b1, i, (int)i*m2+b2);
+		}
+	}
+	else
+	{
+		for(i = x2; i <= x1; i++)
+		{
+			SDL_RenderDrawLine(renderer, i, (int)i*m1+b1, i, (int)i*m2+b2);
+		}
+	}
+	
+}
+
 void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wall, Map * map)
 {
 	int x0, y0, x1, y1;
@@ -209,7 +241,7 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 	drawLine(renderer, px, py, px + 30*cos(rads), py + 30*sin(rads), 0, 0, 0, SDL_ALPHA_OPAQUE);
 	drawRect(renderer, px-5, py-5, 10, 10, 0, 255, 0, SDL_ALPHA_OPAQUE);
 	/*Wall in MiniMap*/
-	drawLine(renderer, x0, y0, x1, y1, 0, 0, 255, SDL_ALPHA_OPAQUE);
+	drawLine(renderer, x0, y0, x1, y1, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	#endif
 
 	tz1 = (x0 - px)*cos(rads) + (y0 - py)*sin(rads);
@@ -220,7 +252,7 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 	/*Draw MiniMap 2 and Player*/
 	#ifdef _DEBUG
 	/*Wall in MiniMap*/
-	drawLine(renderer, map->x + map->x/2 - wx0_aux, map->y/2 - tz1, map->x + map->x/2 - wx1_aux, map->y/2 - tz2, 0, 0, 255, SDL_ALPHA_OPAQUE);
+	drawLine(renderer, map->x + map->x/2 - wx0_aux, map->y/2 - tz1, map->x + map->x/2 - wx1_aux, map->y/2 - tz2, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	/*Player in MiniMap*/
 	drawLine(renderer, map->x + map->x/2, map->y/2, map->x + map->x/2, map->y/2 - 30, 0, 0, 0, SDL_ALPHA_OPAQUE);
 	drawRect(renderer, map->x + map->x/2-5, map->y/2-5, 10, 10, 0, 255, 0, SDL_ALPHA_OPAQUE);
@@ -266,6 +298,11 @@ void draw3DWall(SDL_Renderer * renderer, int px, int py, double alpha, Wall * wa
 		/*Setting wall color*/
 		SDL_SetRenderDrawColor(renderer, wall->r, wall->g, wall->b, wall->a);
 
+		drawFilledWall(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y1a, WINDOW_HEIGHT/2 + y2a, WINDOW_HEIGHT/2 + y1b, WINDOW_HEIGHT/2 + y2b);
+
+		/*Setting to black the wall margin*/
+		//SDL_SetRenderDrawColor(renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2a); //top
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1b, WINDOW_WIDTH/2 + x_2, WINDOW_HEIGHT/2 + y2b); //bottom
 		SDL_RenderDrawLine(renderer, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1a, WINDOW_WIDTH/2 + x_1, WINDOW_HEIGHT/2 + y1b); //left
@@ -291,23 +328,45 @@ void destroySDL(SDL_Renderer * renderer)
 	SDL_Quit();
 }
 
+double getDistance(Map * map, int x, int y)
+{
+	return sqrt((map->px - x)*(map->px - x) + (map->py - y)*(map->py - y));
+}
+
 void drawMap(SDL_Renderer * renderer, Map * map)
 {
 	int i = 0;
 	if(map == NULL)
 		return;
+	Wall * walls[map->wallsNumber];
+	int iter = 0;
+	int permutation = 1;
+	Wall * aux;
 	/*3D rendering algorithm*/
 	/*Painter's algorithm, Raycasting or binary space partition*/
 
-	/*Painter's algorithm*/
-
-	/*Si la linea que va desde el jugador a ambos vertices de una pared no colisiona con la recta que define otra pared
-	 entonces esa pared tiene que dibujarse al final*/
-
-	/*Draw all walls without any order*/
 	for(i = 0; i < map->wallsNumber; i++)
 	{
-		draw3DWall(renderer, map->px, map->py, map->alpha, map->walls[i], map);
+		walls[i] = map->walls[i];
+	}
+
+	while ( permutation == 1) {
+		permutation = 0;
+		iter++;
+		for (i=0;i<map->wallsNumber-iter;i++) {
+			if (min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1)) < max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1))){
+				permutation = 1;
+				aux = walls[i];
+				walls[i] = walls[i+1];
+				walls[i+1] = aux;
+			}
+        }
+    }
+
+	/*Draw all walls*/
+	for(i = 0; i < map->wallsNumber; i++)
+	{
+		draw3DWall(renderer, map->px, map->py, map->alpha, walls[i], map);
 	}
 }
 
@@ -317,12 +376,8 @@ void runGame(void * renderer, Map * map)
 	double dx = 0;
 	double dy = 0;
 	double alpha = 0.0, rads = 0.0;
-	int d_alpha = 0;
 	while(1)
 	{
-		/*Alpha increment to 0 to avoid angle movements*/
-		d_alpha = 0;
-
 		/*Detect buttons*/
 		while(SDL_PollEvent(&e))
 		{
@@ -358,7 +413,7 @@ void runGame(void * renderer, Map * map)
 
 		/*Draw in the screen*/
 		/*Black background*/
-		setBackgroundColor((SDL_Renderer *) renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		setBackgroundColor((SDL_Renderer *) renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 		if(dx >= 1) {
 			map->px += 1;
 			dx = 0;
