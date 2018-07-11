@@ -321,7 +321,7 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 		permutation = 0;
 		iter++;
 		for (i=0;i<map->wallsNumber-iter;i++) {
-			if (min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1)) > max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1))){
+			if (min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1)) < max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1))){
 				permutation = 1;
 				aux = walls[i];
 				walls[i] = walls[i+1];
@@ -334,7 +334,7 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 	/*Draw all walls without any order*/
 	for(i = 0; i < map->wallsNumber; i++)
 	{
-		draw3DWall(renderer, map->px, map->py, map->alpha, map->walls[i], map);
+		draw3DWall(renderer, map->px, map->py, map->alpha, walls[i], map);
 	}
 }
 
