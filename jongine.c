@@ -8,6 +8,9 @@
 #define HFOV 75
 #define VFOV 2
 
+#define min(a,b)	(((a) < (b)) ? (a) : (b))
+#define max(a,b)	(((a) > (b)) ? (a) : (b))
+
 struct _Map
 {
 	int x, y;
@@ -291,13 +294,42 @@ void destroySDL(SDL_Renderer * renderer)
 	SDL_Quit();
 }
 
+double getDistance(Map * map, int x, int y)
+{
+	return sqrt((map->px - x)*(map->px - x) + (map->py - y)*(map->py - y));
+}
+
 void drawMap(SDL_Renderer * renderer, Map * map)
 {
 	int i = 0;
 	if(map == NULL)
 		return;
+	Wall * walls[map->wallsNumber];
+	int iter = 0;
+	int permutation = 1;
+	Wall * aux;
 	/*3D rendering algorithm*/
 	/*Painter's algorithm, Raycasting or binary space partition*/
+
+
+	for(i = 0; i < map->wallsNumber; i++)
+	{
+		walls[i] = map->walls[i];
+	}
+
+	while ( permutation == 1) {
+		permutation = 0;
+		iter++;
+		for (i=0;i<map->wallsNumber-iter;i++) {
+			if (min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1)) > max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1))){
+				permutation = 1;
+				aux = walls[i];
+				walls[i] = walls[i+1];
+				walls[i+1] = aux;
+			}
+        }
+    }
+
 
 	/*Draw all walls without any order*/
 	for(i = 0; i < map->wallsNumber; i++)
@@ -312,12 +344,8 @@ void runGame(void * renderer, Map * map)
 	double dx = 0;
 	double dy = 0;
 	double alpha = 0.0, rads = 0.0;
-	int d_alpha = 0;
 	while(1)
 	{
-		/*Alpha increment to 0 to avoid angle movements*/
-		d_alpha = 0;
-
 		/*Detect buttons*/
 		while(SDL_PollEvent(&e))
 		{
@@ -353,7 +381,7 @@ void runGame(void * renderer, Map * map)
 
 		/*Draw in the screen*/
 		/*Black background*/
-		setBackgroundColor((SDL_Renderer *) renderer, 0, 0, 0, SDL_ALPHA_OPAQUE);
+		setBackgroundColor((SDL_Renderer *) renderer, 255, 255, 255, SDL_ALPHA_OPAQUE);
 		if(dx >= 1) {
 			map->px += 1;
 			dx = 0;
