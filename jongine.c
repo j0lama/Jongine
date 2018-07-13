@@ -6,7 +6,7 @@
 
 #define PI 3.14159265358979323846
 #define HFOV 75
-#define VFOV 2
+#define VFOV 3
 
 #define PLAYER_SPEED 5
 
@@ -347,6 +347,7 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 	int iter = 0;
 	int permutation = 1;
 	Wall * aux;
+	double min1 = 0.0, max2 = 0.0;
 	/*3D rendering algorithm*/
 	/*Painter's algorithm, Raycasting or binary space partition*/
 
@@ -355,11 +356,15 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 		walls[i] = map->walls[i];
 	}
 
+
+	/*Painter's algorithm*/
 	while ( permutation == 1) {
 		permutation = 0;
 		iter++;
 		for (i=0;i<map->wallsNumber-iter;i++) {
-			if (min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1)) < max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1))){
+			min1 = min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1));
+			max2 = max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1));
+			if (min1 < max2){
 				permutation = 1;
 				aux = walls[i];
 				walls[i] = walls[i+1];
