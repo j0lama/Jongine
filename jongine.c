@@ -333,9 +333,9 @@ void destroySDL(SDL_Renderer * renderer)
 	SDL_Quit();
 }
 
-double getDistance(Map * map, int x, int y)
+double getDistance(int x0, int y0, int x1, int y1, int x2, int y2)
 {
-	return sqrt((map->px - x)*(map->px - x) + (map->py - y)*(map->py - y));
+	return abs((y2 - y1)*x0 - (x2 - y2)*y0 +x2*y1 - y2*x1)/sqrt((y2-y1)*(y2-y1) + (x2-x1)*(x2-x1));
 }
 
 void drawMap(SDL_Renderer * renderer, Map * map)
@@ -343,7 +343,7 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 	int i = 0;
 	if(map == NULL)
 		return;
-	Wall * walls[map->wallsNumber];
+	Wall * array[map->wallsNumber];
 	int iter = 0;
 	int permutation = 1;
 	Wall * aux;
@@ -353,30 +353,31 @@ void drawMap(SDL_Renderer * renderer, Map * map)
 
 	for(i = 0; i < map->wallsNumber; i++)
 	{
-		walls[i] = map->walls[i];
+		array[i] = map->walls[i];
 	}
 
 
-	/*Painter's algorithm*/
-	while ( permutation == 1) {
-		permutation = 0;
-		iter++;
-		for (i=0;i<map->wallsNumber-iter;i++) {
-			min1 = min(getDistance(map, walls[i]->x0, walls[i]->y0), getDistance(map, walls[i]->x1, walls[i]->y1));
-			max2 = max(getDistance(map, walls[i+1]->x0, walls[i+1]->y0), getDistance(map, walls[i+1]->x1, walls[i+1]->y1));
-			if (min1 < max2){
-				permutation = 1;
-				aux = walls[i];
-				walls[i] = walls[i+1];
-				walls[i+1] = aux;
+
+	for (int step = 0; step < map->wallsNumber - 1; ++step)
+	{
+		for (int i = 0; i < map->wallsNumber - step - 1; ++i)
+		{
+			// To sort in descending order, change">" to "<".
+			double d1 = getDistance(map->px, map->py, array[i]->x0, array[i]->y0, array[i]->x1, array[i]->y1);
+			double d2 = getDistance(map->px, map->py, array[i+1]->x0, array[i+1]->y0, array[i+1]->x1, array[i+1]->y1);
+			if (d1 >= d2)
+			{
+				Wall * temp = array[i];
+				array[i] = array[i + 1];
+				array[i + 1] = temp;
 			}
-        }
-    }
+		}
+	}
 
 	/*Draw all walls*/
 	for(i = 0; i < map->wallsNumber; i++)
 	{
-		draw3DWall(renderer, map->px, map->py, map->alpha, walls[i], map);
+		draw3DWall(renderer, map->px, map->py, map->alpha, array[i], map);
 	}
 }
 
